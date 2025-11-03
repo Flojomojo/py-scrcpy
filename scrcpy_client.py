@@ -3,6 +3,7 @@ import subprocess
 import threading
 import random
 from typing import Callable, Any
+import adbutils
 import av
 import numpy as np
 import pathlib
@@ -19,7 +20,6 @@ DEFAULT_MAX_FPS = 30
 DEVICE_NAME_FIELD_LENGTH = 64
 CODEC_ID_FIELD_LENGTH = 4
 VIDEO_HEADER_FIELD_LENGTH = (4, 4)  # w, h
-
 
 class ListenEvent(Enum):
     FRAME = "frame"
@@ -44,9 +44,6 @@ class ScrcpyClient:
         server_path: str,
         bit_rate: int = DEFAULT_BIT_RATE,
         max_fps: int = DEFAULT_MAX_FPS,
-        video_socket: bool = True,
-        audio_socket: bool = False,
-        control_socket: bool = False,
     ):
         """
         Initialize the client.
@@ -56,15 +53,7 @@ class ScrcpyClient:
             server_path: The local path to the scrcpy server file.
             bit_rate: The desired video bit rate in bits per second.
             max_fps: The desired maximum frames per second.
-            video_socket: Wether to connect a video socket.
-            audio_socket: Wether to connect a audio socket.
-            control_socket: Wether to connect a control socket.
         """
-
-        # TODO implement *_socket
-
-        if not video_socket and not audio_socket and not control_socket:
-            raise ValueError("No socket selected. Please select at least one.")
 
         real_path = pathlib.Path(server_path)
         if not real_path.exists():
@@ -92,6 +81,7 @@ class ScrcpyClient:
         self._stream_thread: threading.Thread | None = None
         self._local_port: int | None = None
         self.device_name: str = "unknown"
+        self.video_codec: str = "h264"
 
     # TODO add server args
     def _get_server_args(self) -> list[str]:
@@ -103,7 +93,6 @@ class ScrcpyClient:
             f"video_bit_rate={self.bit_rate}",
             f"max_fps={self.max_fps}",
             "audio=false",
-            "control=true",
         ]
 
     def _push_server(self):
@@ -160,10 +149,9 @@ class ScrcpyClient:
             *server_args,
         ]
 
-        # TODO get adb path or let user specify
         # Use adb shell to run the command in the background
         # Note: We can't use device.shell with Popen semantics from adbutils, so we use adb binary directly.
-        adb_command: list[str] = ["adb", "-s", self.device.serial, "shell", *command]
+        adb_command: list[str] = [adbutils.adb_path(), "-s", self.device.serial, "shell", *command]
 
         self._server_process = subprocess.Popen(
             adb_command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
