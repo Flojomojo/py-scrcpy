@@ -1,0 +1,12 @@
+[project]
+name = "pyscrcpy"
+version = "0.1.0"
+description = "A python implementation of a scrcpy client"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "adbutils>=2.11.0",
+    "av>=16.0.1",
+    "numpy>=2.3.4",
+    "opencv-python>=4.11.0.86",
+]
