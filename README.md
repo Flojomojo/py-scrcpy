@@ -19,7 +19,7 @@ Dependencies are found in the [`pyproject.toml`](https://github.com/Flojomojo/py
 - [av](https://github.com/PyAV-Org/PyAV), [numpy](https://github.com/numpy/numpy), and [cv2](https://github.com/opencv/opencv-python) for handling frame decoding
 
 # Limitations & Scope
-*Modern scrcpy only:* Because scrcpy changed heavily in the past, only modern versions of the server are supported (> scrcpy 2.0.0)
-*Video only:* This is a video only implementation. This means the goal of this project is only to get a video feed, not audio, not control
-*h264 only:* The currently only supported video codec by this project is "h264", even though more might be supported in the future (this is more than plenty for most projects)
+*Modern scrcpy only:* Because scrcpy changed heavily in the past, only modern versions of the server are supported (> scrcpy 2.0.0).
+*Video only:* This is a video only implementation. This means the goal of this project is only to get a video feed, not audio, not control.
+*h264 only:* The currently only supported video codec by this project is "h264", even though more might be supported in the future (this is more than plenty for most projects).
 
