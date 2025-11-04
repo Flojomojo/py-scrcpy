@@ -21,6 +21,7 @@ DEVICE_NAME_FIELD_LENGTH = 64
 CODEC_ID_FIELD_LENGTH = 4
 VIDEO_HEADER_FIELD_LENGTH = (4, 4)  # w, h
 
+
 class ListenEvent(Enum):
     FRAME = "frame"
     INIT = "init"
@@ -42,8 +43,7 @@ class ScrcpyClient:
         self,
         device: AdbDevice,
         server_path: str,
-        bit_rate: int = DEFAULT_BIT_RATE,
-        max_fps: int = DEFAULT_MAX_FPS,
+        server_args: dict[str, str] | None = None,
     ):
         """
         Initialize the client.
@@ -61,8 +61,6 @@ class ScrcpyClient:
 
         self.device: AdbDevice = device
         self.server_path: pathlib.Path = real_path
-        self.bit_rate: int = bit_rate
-        self.max_fps: int = max_fps
 
         self.scid: int = random.randint(0, 0x7FFFFFFF)
         self.socket_name: str = f"{SOCKET_NAME_PREFIX}_{self.scid:08x}"
@@ -83,17 +81,28 @@ class ScrcpyClient:
         self.device_name: str = "unknown"
         self.video_codec: str = "h264"
 
+        self._custom_server_args: dict[str, str] = (
+            {} if server_args is None else server_args
+        )
+
     # TODO add server args
     def _get_server_args(self) -> list[str]:
         """Constructs the arguments to start the scrcpy server on the device."""
-        return [
-            SERVER_VERSION,
-            f"scid={self.scid:x}",
-            "log_level=info",
-            f"video_bit_rate={self.bit_rate}",
-            f"max_fps={self.max_fps}",
-            "audio=false",
-        ]
+        predefined: dict[str, str] = {
+            "log_level": "info",
+            "video_bit_rate": str(DEFAULT_BIT_RATE),
+            "max_fps": str(DEFAULT_MAX_FPS),
+            "audio": "false",
+        }
+
+        all = predefined | self._custom_server_args
+
+        server_args = [SERVER_VERSION, f"scid={self.scid:x}"]
+
+        for key, value in all.items():
+            server_args.append(f"{key}={value}")
+        
+        return server_args
 
     def _push_server(self):
         """Pushes the scrcpy-server to the device if it's missing or outdated."""
@@ -151,7 +160,13 @@ class ScrcpyClient:
 
         # Use adb shell to run the command in the background
         # Note: We can't use device.shell with Popen semantics from adbutils, so we use adb binary directly.
-        adb_command: list[str] = [adbutils.adb_path(), "-s", self.device.serial, "shell", *command]
+        adb_command: list[str] = [
+            adbutils.adb_path(),
+            "-s",
+            self.device.serial,
+            "shell",
+            *command,
+        ]
 
         self._server_process = subprocess.Popen(
             adb_command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
