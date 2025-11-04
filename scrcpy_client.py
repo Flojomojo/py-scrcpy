@@ -11,6 +11,7 @@ import logging
 from adbutils import AdbDevice
 from enum import Enum
 
+# TODO extract server version from server binary?
 SERVER_VERSION = "3.3.3"
 SERVER_REMOTE_PATH = "/data/local/tmp/scrcpy-server.jar"
 SOCKET_NAME_PREFIX = "scrcpy"
@@ -51,8 +52,7 @@ class ScrcpyClient:
         Args:
             device_serial: The serial of the device.
             server_path: The local path to the scrcpy server file.
-            bit_rate: The desired video bit rate in bits per second.
-            max_fps: The desired maximum frames per second.
+            server_args: The server args you want to overwrite.
         """
 
         real_path = pathlib.Path(server_path)
