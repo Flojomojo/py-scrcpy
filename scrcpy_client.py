@@ -85,7 +85,6 @@ class ScrcpyClient:
             {} if server_args is None else server_args
         )
 
-    # TODO add server args
     def _get_server_args(self) -> list[str]:
         """Constructs the arguments to start the scrcpy server on the device."""
         predefined: dict[str, str] = {
