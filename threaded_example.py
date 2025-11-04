@@ -19,7 +19,8 @@ stop_event = threading.Event()
 
 def on_frame(frame: np.ndarray | None) -> None:
     if frame is None:
-        stop_event.set()  # Signal the main thread to stop
+        # Main thread should stop
+        stop_event.set()
         return
     try:
         frame_queue.put_nowait(frame)
@@ -64,11 +65,9 @@ def main():
 
         if client:
             client.stop()
-
         cv2.destroyAllWindows()
         logging.info("Client stopped")
 
 
 if __name__ == "__main__":
-
     main() 
